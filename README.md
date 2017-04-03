@@ -1,6 +1,6 @@
 # Nanac
 
-Nanac is a tiny single-pass assembler and virtual machine. The VM is under 150 lines of C and is fully modular, the machine uses on 32bit opcodes:
+Nanac is a tiny Python two-pass assembler and a C virtual machine. The VM is under 150 lines of C and is fully modular allowing you to expand quickly, the machine uses on 32bit opcodes:
 
  * 8bit module ID
  * 8bit cmd ID

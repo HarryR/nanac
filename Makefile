@@ -1,6 +1,6 @@
 CFLAGS = -Wall --std=c99 -Os -DTRACE
 
-all: nanac.exe
+all: nanac.exe test
 
 .PHONY: test
 test: nanac.exe test.bin
