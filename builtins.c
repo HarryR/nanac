@@ -33,22 +33,22 @@ static int jmp_to( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
 }
 
 static int jmp_eq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = cpu->regs[arga] == cpu->regs[arga];
+	cpu->do_jump = cpu->regs[arga] == cpu->regs[argb];
 	return 0;
 }
 
 static int jmp_neq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = cpu->regs[arga] != cpu->regs[arga];
+	cpu->do_jump = cpu->regs[arga] != cpu->regs[argb];
 	return 0;
 }
 
 static int jmp_or( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = cpu->regs[arga] || cpu->regs[arga];
+	cpu->do_jump = cpu->regs[arga] || cpu->regs[argb];
 	return 0;
 }
 
 static int jmp_and( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = cpu->regs[arga] && cpu->regs[arga];
+	cpu->do_jump = cpu->regs[arga] && cpu->regs[argb];
 	return 0;
 }
 

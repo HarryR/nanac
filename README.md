@@ -51,7 +51,7 @@ When executing it will generate a trace:
 
 ```c
 static int jmp_eq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = cpu->regs[arga] == cpu->regs[arga];
+	cpu->do_jump = cpu->regs[arga] == cpu->regs[argb];
 	return 0;
 }
 ```
