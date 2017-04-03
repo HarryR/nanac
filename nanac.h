@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-struct nanac_cpu;
-typedef struct nanac_cpu nanac_cpu_t;
+struct nanac_s;
+typedef struct nanac_s nanac_t;
 
-typedef int (*nanac_op_f)( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb );
+typedef int (*nanac_op_f)( nanac_t *cpu, uint8_t arga, uint8_t argb );
 
 
 typedef struct {
@@ -32,7 +32,7 @@ typedef struct {
 } nanac_mod_t;
 
 
-struct nanac_cpu {
+struct nanac_s {
 	nanac_op_t *ops;
 	uint16_t ops_sz;
 	uint16_t eip;
@@ -47,17 +47,17 @@ static inline uint16_t nanac_uint16_t( uint8_t arga, uint8_t argb ) {
 	return arga | (argb<<8);
 }
 
-void nanac_init( nanac_cpu_t *cpu );
+void nanac_init( nanac_t *cpu );
 
-int nanac_addmod( nanac_cpu_t *cpu, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] );
+int nanac_addmod( nanac_t *cpu, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] );
 
-const nanac_op_t *nanac_op( const nanac_cpu_t *cpu, const uint16_t eip );
+const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip );
 
-int nanac_step( nanac_cpu_t *cpu, const nanac_op_t *op );
+int nanac_step( nanac_t *cpu, const nanac_op_t *op );
 
-int nanac_run( nanac_cpu_t *cpu );
+int nanac_run( nanac_t *cpu );
 
-const uint8_t *nanac_bytes( const nanac_cpu_t *cpu, uint32_t offset, uint32_t length );
+const uint8_t *nanac_bytes( const nanac_t *cpu, uint32_t offset, uint32_t length );
 
 
 #endif

@@ -50,7 +50,7 @@ When executing it will generate a trace:
 ## Example command
 
 ```c
-static int jmp_eq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
+static int jmp_eq( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	cpu->do_jump = cpu->regs[arga] == cpu->regs[argb];
 	return 0;
 }
@@ -60,7 +60,7 @@ static int jmp_eq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
 
 ```c
 int main( int argc, char **argv ) {
-	nanac_cpu_t cpu;
+	nanac_t cpu;
 	nanac_init(&cpu);
 	nanac_builtins(&cpu);
 

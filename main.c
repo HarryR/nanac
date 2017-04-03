@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void print_mods (nanac_cpu_t *cpu) {
+static void print_mods (nanac_t *cpu) {
 	for( uint8_t mod_idx = 0; mod_idx < cpu->mods_cnt; mod_idx++ ) {
 		nanac_mod_t *mod = &cpu->mods[mod_idx];
 		for( uint8_t cmd_idx = 0; cmd_idx < mod->cmds_len; cmd_idx++ )  {
@@ -14,7 +14,7 @@ static void print_mods (nanac_cpu_t *cpu) {
 	}
 }
 
-static void load_file (nanac_cpu_t *cpu, const char *filename) {
+static void load_file (nanac_t *cpu, const char *filename) {
 	FILE *fp;
     long lSize;
     char *buffer;
@@ -53,20 +53,20 @@ static void load_file (nanac_cpu_t *cpu, const char *filename) {
 }
 
 int main( int argc, char **argv ) {
-	nanac_cpu_t cpu;
-	nanac_init(&cpu);
-	nanac_builtins(&cpu);
+	nanac_t ctx;
+	nanac_init(&ctx);
+	nanac_builtins(&ctx);
 
-	print_mods(&cpu);
+	print_mods(&ctx);
 
 	if( argc > 1 ) {
-		load_file(&cpu, argv[1]);
+		load_file(&ctx, argv[1]);
 	}
 
-	nanac_run(&cpu);
+	nanac_run(&ctx);
 
-	if( cpu.ops ) {
-		free(cpu.ops);
+	if( ctx.ops ) {
+		free(ctx.ops);
 	}
 
 	return 0;

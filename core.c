@@ -5,11 +5,11 @@
 
 
 
-void nanac_init( nanac_cpu_t *cpu ) {
+void nanac_init( nanac_t *cpu ) {
 	memset(cpu, 0, sizeof(*cpu));
 }
 
-int nanac_addmod( nanac_cpu_t *cpu, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] ) {
+int nanac_addmod( nanac_t *cpu, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] ) {
 	if( cpu->mods_cnt >= 0xFF )
 		return 0;
 	nanac_mod_t *mod = &cpu->mods[cpu->mods_cnt++];
@@ -19,14 +19,14 @@ int nanac_addmod( nanac_cpu_t *cpu, const char *name, uint8_t cmds_len, const na
 	return 1;
 }
 
-const nanac_op_t *nanac_op( const nanac_cpu_t *cpu, const uint16_t eip ) {
+const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip ) {
 	if( eip < cpu->ops_sz ) {
 		return &cpu->ops[eip];
 	}
 	return NULL;
 }
 
-int nanac_step( nanac_cpu_t *cpu, const nanac_op_t *op ) {
+int nanac_step( nanac_t *cpu, const nanac_op_t *op ) {
 	const nanac_mod_t *mod = &cpu->mods[op->mod];
 	if( ! mod ) {
 		return -11;
@@ -52,7 +52,7 @@ int nanac_step( nanac_cpu_t *cpu, const nanac_op_t *op ) {
 	return ret;
 }
 
-int nanac_run( nanac_cpu_t *cpu ) {
+int nanac_run( nanac_t *cpu ) {
 	int escape = 0;
 	while( escape >= 0 ) {
 		const nanac_op_t *op = nanac_op( cpu, cpu->eip );
@@ -65,7 +65,7 @@ int nanac_run( nanac_cpu_t *cpu ) {
 	return escape;
 }
 
-const uint8_t *nanac_bytes( const nanac_cpu_t *cpu, uint32_t offset, uint32_t length ) {
+const uint8_t *nanac_bytes( const nanac_t *cpu, uint32_t offset, uint32_t length ) {
 	if( (offset + length) > (cpu->ops_sz * 4) )
 		return NULL;
 	return &((uint8_t*)cpu->ops)[offset];

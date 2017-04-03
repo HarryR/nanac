@@ -3,6 +3,6 @@
 
 #include "nanac.h"
 
-void nanac_builtins ( nanac_cpu_t *cpu );
+void nanac_builtins ( nanac_t *cpu );
 
 #endif
