@@ -30,18 +30,7 @@ $
 
 
 def parse_ops():
-	ops = """
-	00 00 reg mov
-	00 01 reg clr
-	00 02 reg swp
-	01 00 jmp die
-	01 01 jmp to
-	01 02 jmp set
-	01 03 jmp eq
-	01 04 jmp neq
-	01 05 jmp or
-	01 06 jmp and
-	"""
+	ops = os.popen("./nanac.exe").read()
 	out = dict()
 	for line in ops.split("\n"):
 		line = line.strip()
@@ -83,17 +72,23 @@ def main():
 								mod, cmd = ops[(match['mod'], match['cmd'])]
 								arga = match['arga']
 								argb = match['argb']
-								if arga[0] == ':':
+								if arga and arga[0] == ':':
 									arga, argb = labels[arga]
 								else:
-									if arga[0] == '$':
-										arga = namedregs[arga]
+									if arga:
+										if arga[0] == '$':
+											arga = namedregs[arga]
+										else:
+											arga = int(arga)
 									else:
-										arga = int(arga)
-									if argb[0] == '$':
-										argb = namedregs[argb]
+										arga = 0											
+									if argb:
+										if argb[0] == '$':
+											argb = namedregs[argb]
+										else:
+											argb = int(argb)
 									else:
-										argb = int(argb)
+										argb = 0
 								print("@%-4X %02X %02X %02X %02X" % (offset, mod, cmd, arga, argb))
 								outhan.write(struct.pack("<BBBB", mod, cmd, arga, argb))
 								offset += 1

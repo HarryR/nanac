@@ -36,12 +36,25 @@ int nanac_step( nanac_cpu_t *cpu, const nanac_op_t *op ) {
 		return -12;
 
 	const nanac_cmd_t *cmd = &mod->cmds[op->cmd];
-	return cmd->run(cpu, op->arga, op->argb);
+
+#ifdef TRACE
+	printf("@%-4X %s %s %d %d\n", cpu->eip, mod->name, cmd->name, op->arga, op->argb);
+#endif
+
+	int ret = cmd->run(cpu, op->arga, op->argb);
+	if( ! ret ) {
+		if( cpu->do_jump ) {
+			cpu->eip = cpu->jip;
+			cpu->do_jump = 0;
+		}
+		else cpu->eip += 1;
+	}
+	return ret;
 }
 
 int nanac_run( nanac_cpu_t *cpu ) {
 	int escape = 0;
-	while( ! escape ) {
+	while( escape >= 0 ) {
 		const nanac_op_t *op = nanac_op( cpu, cpu->eip );
 		if( ! op ) {
 			escape = -10;

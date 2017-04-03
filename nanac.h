@@ -37,11 +37,15 @@ struct nanac_cpu {
 	uint16_t ops_sz;
 	uint16_t eip;
 	uint16_t jip;
+	int do_jump;
 	void *regs[0xFF];
 	nanac_mod_t mods[0xFF];
 	uint8_t mods_cnt;
 };
 
+static inline uint16_t nanac_uint16_t( uint8_t arga, uint8_t argb ) {
+	return arga | (argb<<8);
+}
 
 void nanac_init( nanac_cpu_t *cpu );
 

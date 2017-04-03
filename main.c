@@ -1,67 +1,8 @@
 #include "nanac.h"
+#include "builtins.h"
 
 #include <stdio.h>
-
-int reg_swp( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	void *tmp = cpu->regs[arga];
-	cpu->regs[arga] = cpu->regs[argb];
-	cpu->regs[argb] = tmp;
-	return 0;
-} 
-
-int reg_mov( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->regs[arga] = cpu->regs[argb];
-	return 0;
-} 
-
-int reg_clr( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->regs[arga] = 0;
-	cpu->regs[argb] = 0;
-	return 0;
-}
-
-
-int jmp_set( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->jip = arga | (argb<<8);
-	return 0;
-}
-
-int jmp_to( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->eip = arga | (argb<<8);
-	return 0;
-}
-
-int jmp_eq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	if( cpu->regs[arga] == cpu->regs[arga] ) {
-		cpu->eip = cpu->jip;
-	}
-	return 0;
-}
-
-int jmp_neq( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	if( cpu->regs[arga] != cpu->regs[arga] ) {
-		cpu->eip = cpu->jip;
-	}
-	return 0;
-}
-
-int jmp_or( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	if( cpu->regs[arga] || cpu->regs[arga] ) {
-		cpu->eip = cpu->jip;
-	}
-	return 0;
-}
-
-int jmp_and( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	if( cpu->regs[arga] && cpu->regs[arga] ) {
-		cpu->eip = cpu->jip;
-	}
-	return 0;
-}
-
-int jmp_die( nanac_cpu_t *cpu, uint8_t arga, uint8_t argb ) {
-	return 1;
-}
+#include <stdlib.h>
 
 static void print_mods (nanac_cpu_t *cpu) {
 	for( uint8_t mod_idx = 0; mod_idx < cpu->mods_cnt; mod_idx++ ) {
@@ -73,27 +14,60 @@ static void print_mods (nanac_cpu_t *cpu) {
 	}
 }
 
+static void load_file (nanac_cpu_t *cpu, const char *filename) {
+	FILE *fp;
+    long lSize;
+    char *buffer;
+
+    fp = fopen ( filename , "rb" );
+    if( !fp ) {
+    	perror(filename);
+    	exit(1);
+    }
+
+    fseek( fp , 0L , SEEK_END);
+    lSize = ftell( fp );
+    rewind( fp );
+
+    /* allocate memory for entire content */
+    buffer = calloc( 1, lSize+1 );
+
+    if( !buffer ) {
+    	fclose(fp);
+    	fputs("memory alloc fails",stderr);
+    	exit(1);
+    }
+
+    /* copy the file into the buffer */
+    if( 1!=fread( buffer , lSize, 1 , fp) ) {
+      fclose(fp);
+      free(buffer);
+      fputs("entire read fails",stderr);
+      exit(1);
+    }
+
+    /* do your work here, buffer is a string contains the whole text */
+  	cpu->ops = (nanac_op_t*)buffer;
+    cpu->ops_sz = lSize / 4;
+    fclose(fp);
+}
+
 int main( int argc, char **argv ) {
 	nanac_cpu_t cpu;
 	nanac_init(&cpu);
-
-	nanac_addmod(&cpu, "reg", 3, (nanac_cmd_t[]){
-		{"mov", &reg_mov},
-		{"clr", &reg_clr},
-		{"swp", &reg_swp},
-	});
-
-	nanac_addmod(&cpu, "jmp", 7, (nanac_cmd_t[]){
-		{"die", &jmp_die},
-		{"to", &jmp_to},
-		{"set", &jmp_set},
-		{"eq", &jmp_eq},
-		{"neq", &jmp_neq},
-		{"or", &jmp_or},
-		{"and", &jmp_and},
-	});
+	nanac_builtins(&cpu);
 
 	print_mods(&cpu);
+
+	if( argc > 1 ) {
+		load_file(&cpu, argv[1]);
+	}
+
+	nanac_run(&cpu);
+
+	if( cpu.ops ) {
+		free(cpu.ops);
+	}
 
 	return 0;
 }

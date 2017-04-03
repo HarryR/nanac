@@ -1,12 +1,12 @@
-CFLAGS = -Wall --std=c99 -Os
+CFLAGS = -Wall --std=c99 -Os -DTRACE
 
-all: nanac test.bin
+all: nanac.exe test.bin
 
-nanac: core.o main.o
+nanac.exe: core.o main.o builtins.o
 	$(CC) $(CFLAGS) -o $@ $+
 
 clean:
-	rm -f *.o *.bin nanac
+	rm -f *.o *.bin *.exe *.pyc
 
 %.bin: %.asm assemble.py
 	./assemble.py $<
