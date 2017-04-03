@@ -47,6 +47,18 @@ When executing it will generate a trace:
 @1    jmp die 0 0
 ```
 
+The assembler will generate a listing:
+
+```
+01010200 @0    jmp to :main   # test.asm:5
+01000000 @1    jmp die    # test.asm:6
+00000001 @2    reg mov $ZERO $ONE  # test.asm:8
+00020100 @3    reg swp $ONE $ZERO  # test.asm:9
+01020100 @4    jmp set :exit   # test.asm:10
+01040001 @5    jmp neq $ZERO $ONE  # test.asm:11
+01030001 @6    jmp eq $ZERO $ONE  # test.asm:13
+```
+
 ## Example command
 
 ```c

@@ -118,11 +118,9 @@ class Assembler(object):
 			op.eip = eip
 		self.ops = []
 		for op in self.ir:
-			print(op)
 			bytecode = op.resolve(self)
-			print("= %02X %02X %02X %02X" % bytecode)
+			print(("%02X%02X%02X%02X " % bytecode) + str(op))
 			self.ops.append(bytecode)
-			print("")
 
 	def assemble_file(self, handle):
 		for idx, line in enumerate(handle):
