@@ -1,6 +1,10 @@
 CFLAGS = -Wall --std=c99 -Os -DTRACE
 
-all: nanac.exe test.bin
+all: nanac.exe
+
+.PHONY: test
+test: nanac.exe test.bin
+	./nanac.exe test.bin
 
 nanac.exe: core.o main.o builtins.o
 	$(CC) $(CFLAGS) -o $@ $+

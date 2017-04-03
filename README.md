@@ -20,9 +20,7 @@ Conditionals are handled by saving the 'jump address' into the `jip` special reg
 ## Example Program
 
 ```asm
-# Example
-
-$ZERO 0
+$ZERO 0   # Friendly names for registers
 $ONE 1
 
 :start	jmp to 2
@@ -34,6 +32,19 @@ $ONE 1
 	jmp neq $ZERO $ONE
 
 :end jmp eq $ZERO $ONE
+
+```
+
+When executing it will generate a trace:
+
+```
+@0    jmp to 2 0
+@2    reg mov 0 1
+@3    reg swp 1 0
+@4    jmp set 1 0
+@5    jmp neq 0 1
+@6    jmp eq 0 1
+@1    jmp die 0 0
 ```
 
 ## Example command

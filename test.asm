@@ -1,6 +1,6 @@
 # Example
 
-$ZERO 0
+$ZERO 0   # Friendly names for registers
 $ONE 1
 
 :start	jmp to 2
