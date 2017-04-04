@@ -113,7 +113,4 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 		{"win", &reg_win},
 	};
 	nanac_mods_add(mods, "reg", 4, _cmds_reg);
-
-
-	/* XXX: auto-determine number of commands pass in argument */
 }
