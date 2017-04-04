@@ -30,7 +30,7 @@ $
 
 
 def parse_instructions():
-	ops = os.popen("./nanac.exe").read()
+	ops = os.popen("./nanac.exe -X").read()
 	out = dict()
 	for line in ops.split("\n"):
 		line = line.strip()
