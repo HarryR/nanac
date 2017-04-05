@@ -28,11 +28,10 @@ int nanac_mods_add( nanac_mods_t *mods, const char *name, uint8_t cmds_len, cons
 
 
 nanac_op_t *nanac_op( nanac_t *cpu, const uint16_t eip ) {
-	if( eip < cpu->ops_sz ) {
-		return &cpu->ops[eip];
-	}
 	if( cpu->do_tmp )
 		return &cpu->tmpop.op;
+	if( eip < cpu->ops_sz )
+		return &cpu->ops[eip];
 	return NULL;
 }
 
