@@ -71,12 +71,6 @@ int op_sav( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	return 0;
 }
 
-int jmp_reg( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->tmpop = nanac_reg_get(cpu, arga);
-	cpu->do_tmp = 1;
-	return 0;
-}
-
 int reg_win( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	if( (cpu->regs_win + arga) > 0xFF )
 		return -123;
@@ -85,6 +79,13 @@ int reg_win( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	cpu->regs_win += arga;
 	cpu->regs_win -= argb;
 	return 0;
+}
+
+int jmp_ret( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
+	cpu->tmpop = nanac_reg_get(cpu, arga);
+	int ret = reg_win(cpu, 0, argb);
+	cpu->do_tmp = ret == 0;
+	return ret;
 }
 
 void nanac_mods_builtins ( nanac_mods_t *mods ) {
@@ -96,7 +97,7 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 		{"neq", &jmp_neq},
 		{"or", &jmp_or},
 		{"and", &jmp_and},
-		{"reg", &jmp_reg},
+		{"ret", &jmp_ret},
 	};
 	nanac_mods_add(mods, "jmp", 8, _cmds_jmp);
 

@@ -140,7 +140,7 @@ def main():
 	for filename in sys.argv[1:]:
 		out_filename = os.path.splitext(filename)[0] + ".bin"
 		asm = Assembler(instructions)
-		print("\n# " + filename + " > " + out_filename)
+		print("\n# " + out_filename)
 		with open(filename) as handle:
 			asm.assemble_file(handle)
 		asm.compile()
