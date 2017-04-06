@@ -27,9 +27,7 @@ int jmp_set( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 }
 
 int jmp_to( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
-	if( ! jmp_set(cpu, arga, argb) ) {
-		cpu->do_jump = 1;
-	}
+	cpu->do_jump = (0 == jmp_set(cpu, arga, argb));
 	return 0;
 }
 

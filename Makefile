@@ -5,12 +5,15 @@ all: nanac.exe test
 .PHONY: test
 test: nanac.exe $(patsubst %.asm,%.test,$(wildcard test/*.asm))
 
-nanac.exe: core.o main.o builtins.o
-	$(CC) $(CFLAGS) -o $@ $+
+libnanac.a: core.o builtins.o
+	$(AR) r $@ $+
+
+nanac.exe: main.o libnanac.a
+	$(CC) $(CFLAGS) -o $@ $< -L. -lnanac
 	strip -R .note -R .comment $@
 
 clean:
-	rm -f *.o *.bin *.exe *.pyc
+	rm -f *.o *.bin *.exe *.pyc *.a
 
 %.bin: %.asm
 	./assemble.py $<
