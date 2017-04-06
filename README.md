@@ -21,13 +21,13 @@ Nanac is a tiny Python two-pass assembler and a C virtual machine. The microcode
 $ZERO 0   # Friendly names for registers
 $ONE 1
 
-:start	jmp to :main
-:exit	jmp die
+:start  jmp to :main
+:exit   jmp die
 :main
-	reg mov $ZERO $ONE
-	reg swp $ONE $ZERO
-	jmp set :exit
-	jmp neq $ZERO $ONE
+    reg mov $ZERO $ONE
+    reg swp $ONE $ZERO
+    jmp set :exit
+    jmp neq $ZERO $ONE
 
 :end jmp eq $ZERO $ONE
 
@@ -77,30 +77,30 @@ a union type called `nanac_reg_t`.
 
 ```c
 static int jmp_eq( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
-	cpu->do_jump = nanac_reg_get(cpu, arga).ptr == nanac_reg_get(cpu, argb).ptr;
-	return 0;
+    cpu->do_jump = nanac_reg_get(cpu, arga).ptr == nanac_reg_get(cpu, argb).ptr;
+    return 0;
 }
 ```
 
 ### Registering a native module
 
 ```c
-	static const nanac_cmd_t _cmds_jmp[] = (nanac_cmd_t[]){
-		{"eq", &jmp_eq},
-	};
-	nanac_mods_add(mods, "jmp", 1, _cmds_jmp);
+    static const nanac_cmd_t _cmds_jmp[] = (nanac_cmd_t[]){
+        {"eq", &jmp_eq},
+    };
+    nanac_mods_add(mods, "jmp", 1, _cmds_jmp);
 ```
 
 ### Example host program
 
 ```c
 int main( int argc, char **argv ) {
-	nanac_mods_t mods;
+    nanac_mods_t mods;
     nanac_mods_init(&mods);
     nanac_mods_builtins(&mods);
-	print_mods(&mods);
+    print_mods(&mods);
     
-	nanac_t ctx;
+    nanac_t ctx;
     nanac_init(&ctx, &mods);
     load_file(&ctx, argv[i]);
     int ret = nanac_run(&ctx);
@@ -108,7 +108,7 @@ int main( int argc, char **argv ) {
         free(ctx.ops);
     }
 
-	return ret;
+    return ret;
 }
 ```
 
