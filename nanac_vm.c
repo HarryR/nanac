@@ -44,6 +44,21 @@ void nanac_reg_set(nanac_t *cpu, uint8_t reg, nanac_reg_t val) {
 }
 
 
+int nanac_step_epilogue( nanac_t *cpu, int ret ) {
+	/* on success, go to JIP, or increment EIP */
+	if( ! ret ) {
+		if( cpu->do_jump ) {
+			cpu->eip = cpu->jip;
+			cpu->do_jump = 0;
+		}
+		else if ( ! cpu->do_tmp ) {
+			cpu->eip += 1;
+		}
+	}
+	return ret;
+}
+
+
 int nanac_step( nanac_t *cpu, const nanac_op_t *op ) {
 	const nanac_mod_t *mod = &cpu->mods->idx[op->mod];
 	if( ! mod ) {
@@ -63,16 +78,7 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op ) {
 	cpu->do_tmp = 0;
 
 	int ret = cmd->run(cpu, op->arga, op->argb);
-
-	/* on success, go to JIP, or increment EIP */
-	if( ! ret ) {
-		if( cpu->do_jump ) {
-			cpu->eip = cpu->jip;
-			cpu->do_jump = 0;
-		}
-		else cpu->eip += 1;
-	}
-	return ret;
+	return nanac_step_epilogue(cpu, ret);
 }
 
 

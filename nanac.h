@@ -74,6 +74,8 @@ void nanac_init( nanac_t *cpu, nanac_mods_t *mods );
 
 nanac_op_t *nanac_op( nanac_t *cpu, const uint16_t eip );
 
+int nanac_step_epilogue( nanac_t *cpu, int ret );
+
 int nanac_step( nanac_t *cpu, const nanac_op_t *op );
 
 int nanac_run( nanac_t *cpu );

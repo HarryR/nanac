@@ -3,3 +3,5 @@
 *.exe
 *.pyc
 *.a
+test/*.out
+test/*.exe.tst

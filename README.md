@@ -11,6 +11,7 @@ Nanac is a tiny Python two-pass assembler and a C virtual machine. The microcode
  * Typeless registers, `void*`
  * Extremely portable C99 code
  * Auto-updating (dis)assembler
+ * Bytecode to C translator
  * Highly modular, add opcodes at runtime
  * 16-bit microcontroller friendly
 
@@ -147,6 +148,8 @@ Other modules must be implemented by the user.
  * `neq $A $B` - If $A and $B aren't the same, jump to `JIP`
  * `or $A $B` - If either $A or $B aren't uninitialised, jump to `JIP`
  * `and $A $B` - If both $A and $B aren't uninitialised, jump to `JIP`
+ * `nil $A $B` - Jump to `JIP` if either $A or $B are uninitialised (`NULL`)
+ * `nz $A $B` - Jump to `JIP` if either $A or $B are uninitialised (`NULL`)
  * `die` - Terminate program
  * `ret $A $B` - Load opcode from register A, reduce register window by B, run temporary opcode
 

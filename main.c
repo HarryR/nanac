@@ -21,6 +21,12 @@ static void load_file (nanac_t *cpu, const char *filename) {
     lSize = ftell( fp );
     rewind( fp );
 
+    if( lSize < 4 || lSize % 4 ) {
+        fclose(fp);
+        fputs("invalid size",stderr);
+        exit(1);
+    }
+
     /* allocate memory for entire content */
     buffer = calloc( 1, lSize+1 );
 

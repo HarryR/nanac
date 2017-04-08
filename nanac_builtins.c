@@ -55,6 +55,16 @@ int jmp_die( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	return -0xFF;
 }
 
+int jmp_nil( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
+	cpu->do_jump = 0 == nanac_reg_get(cpu, arga).ptr || 0 == nanac_reg_get(cpu, argb).ptr;
+	return 0;
+}
+
+int jmp_nz( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
+	cpu->do_jump = 0 != nanac_reg_get(cpu, arga).ptr || 0 != nanac_reg_get(cpu, argb).ptr;
+	return 0;
+}
+
 
 int op_jmp( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 	cpu->tmpop.op.mod = 0;  // jmp
@@ -96,6 +106,8 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 		{"or", &jmp_or},
 		{"and", &jmp_and},
 		{"ret", &jmp_ret},
+		{"nil", &jmp_nil},
+		{"nz", &jmp_nz},
 	};
 	nanac_mods_add(mods, "jmp", 8, _cmds_jmp);
 
