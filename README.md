@@ -130,7 +130,13 @@ There are `2^8` registers, each is a native sized `void*` pointer.
 
 There can be up to `2^16` operations (262140 bytes of code), the `eip` is 16bit.
 
-Conditionals are handled by saving the 'jump address' into the `jip` special register, then calling jump instructions such as `jmp neq` and `jmp eq` which - if the condition matches - will set `eip` to `jip`, otherwise increment `eip` and continue.
+There are three 'special' internal registers:
+
+ * `EIP` - Instruction pointer
+ * `JIP` - Conditional jump destination
+ * `TMP` - Temporary polymorphic opcode
+
+Conditionals are handled by saving the 'jump address' into the `JIP` special register, then calling jump instructions such as `jmp neq` and `jmp eq` which - if the condition matches - will set `EIP` to `JIP`, otherwise increment `eip` and continue.
 
 Basic Modules:
 

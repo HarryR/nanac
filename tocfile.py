@@ -65,7 +65,7 @@ int native_nanac (nanac_t *cpu) {
 					"\t\t\t\tbreak;"
 				]))
 				offset += 1
-			#random.shuffle(cases)
+			random.shuffle(cases)
 			print("\n".join(cases))
 			print("\n")
 	print("""

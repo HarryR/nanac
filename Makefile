@@ -1,5 +1,7 @@
 CFLAGS = -Wall --std=c99 -Os -DTRACE -s -fomit-frame-pointer
 
+OPTFLAGS = -ffunction-sections -flto -Wl,--gc-sections -O3 -s
+
 all: nanac.exe test
 
 .PHONY: test
@@ -32,7 +34,7 @@ test/%.exe.tst: test/%.tst
 	cat test/$*.tst | cut -f 1 -d ' ' > test/$*.exe.tst
 
 test/%.exe: test/%.c test/%.out
-	$(CC) $(CFLAGS) -I. -o $@ $< nanac_vm.c test_main.c
+	$(CC) $(CFLAGS) $(OPTFLAGS) -I. -o $@ $< nanac_vm.c test_main.c
 
 test/%.exe.diff: test/%.exe.tst test/%.exe.out
 	diff test/$*.exe.tst test/$*.exe.out
