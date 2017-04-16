@@ -16,6 +16,7 @@ StmtElif = namedtuple('StmtElif', ['cond', 'body'])
 StmtElse = namedtuple('StmtElse', ['body'])
 StmtIf = namedtuple('StmtIf', ['cond', 'body', 'extra'])
 StmtWhile = namedtuple('StmtWhile', ['cond', 'body'])
+StmtVar = namedtuple('StmtVar', ['name'])
 Label = namedtuple('Label', ['name'])
 Line = namedtuple('Line', ['file', 'idx'])
 Sub = namedtuple('Sub', ['name', 'args', 'body'])
@@ -50,7 +51,7 @@ class Parser(object):
     lines       = line lines
                 | line    
 
-    stmt        = var_assign | stmt_if | stmt_while | stmt_call
+    stmt        = var_assign | stmt_if | stmt_while | stmt_var | stmt_call
     var_assign  = var _ \= _ value                  make_assign
 
     sub         = begin lines end                   make_sub
@@ -67,6 +68,10 @@ class Parser(object):
     call_args   = _ value _ call_args  
                 | _ value
                 | _
+
+    stmt_var    = (\.var) _ var_or_assign           make_var
+    var_or_assign = var_assign
+                  | var
 
     stmt_while  = (\.while\b) space bool split lines space (\.end\b)    make_while
 
@@ -94,6 +99,7 @@ class Parser(object):
                   "make_cmp": StmtCmp,
                   "make_assign": StmtAssign,
                   "make_label": Label,
+                  "make_var": lambda *x: StmtVar(x[1]),
                   "make_while": lambda *x: StmtWhile(x[1], x[2:-1]),
                   "make_else": lambda *x: StmtElse(x[1:]),
                   "make_if": lambda *x: StmtIf(x[0][0], x[0][1], x[1]),
@@ -114,16 +120,19 @@ class Parser(object):
 
 
 def str_expr(expr, inside=False):
-    result = "<UHNKNOWN! " + str(expr) + " >"
     if isinstance(expr, Var):
         result = "$" + expr.name
     else:
         if isinstance(expr, StmtCmp):
             result = "%s %s %s" % (str_expr(expr.left, True), expr.op, str_expr(expr.right, True))
+        elif isinstance(expr, StmtAssign):
+            result = "%s = %s" % (str_expr(expr.left), str_expr(expr.right, True))
         elif isinstance(expr, Call):
             result = "%s %s" % (expr.name, str_expr(expr.args))
         elif isinstance(expr, (list, tuple)):
             result = " ".join([str_expr(X) for X in expr])
+        else:
+            raise RuntimeError("Unknown expression: %r" % (expr,))
         if inside:
             result = "(" + result + ")"
     return result
@@ -166,8 +175,10 @@ def print_token(token, level=0):
         print(indent + ".end")
     elif isinstance(token, StmtAssign):
         print(indent + str_expr(token.left), "=", str_expr(token.right))
+    elif isinstance(token, StmtVar):
+        print(indent + ".var", str_expr(token.name))
     else:
-        print(indent, "Derp", token)
+        raise RuntimeError("Unknown token: %r" % (token,))
 
 
 class Driver(object):
@@ -176,7 +187,6 @@ class Driver(object):
         token_list = parser(handle.read())
         for token in token_list:
             print_token(token)
-            #print(token,"\n")
         return token_list
 
 
