@@ -1,6 +1,4 @@
-CFLAGS = -Wall --std=c99 -Os -DTRACE -s -fomit-frame-pointer
-
-OPTFLAGS = -ffunction-sections -flto -Wl,--gc-sections -O3 -s
+CFLAGS = -Wall -DTRACE
 
 all: nanac.exe test
 
@@ -12,7 +10,6 @@ libnanac.a: nanac_vm.o nanac_builtins.o
 
 nanac.exe: main.o libnanac.a
 	$(CC) $(CFLAGS) -o $@ $< -L. -lnanac
-	strip -R .note -R .comment $@
 
 clean:
 	rm -f *.o *.bin *.exe *.pyc *.a test/*.bin test/*.c test/*.out test/*.exe test/*.exe.tst

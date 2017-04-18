@@ -97,7 +97,7 @@ int jmp_ret( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
 }
 
 void nanac_mods_builtins ( nanac_mods_t *mods ) {
-	static const nanac_cmd_t _cmds_jmp[] = (nanac_cmd_t[]){
+	static const nanac_cmd_t _cmds_jmp[] = (const nanac_cmd_t[]){
 		{"to", &jmp_to},
 		{"die", &jmp_die},
 		{"set", &jmp_set},
@@ -111,13 +111,13 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 	};
 	nanac_mods_add(mods, "jmp", 8, _cmds_jmp);
 
-	static const nanac_cmd_t _cmds_op[] = (nanac_cmd_t[]){
+	static const nanac_cmd_t _cmds_op[] = (const nanac_cmd_t[]){
 		{"jmp", &op_jmp},
 		{"sav", &op_sav},
 	};
 	nanac_mods_add(mods, "op", 2, _cmds_op);
 
-	static const nanac_cmd_t _cmds_reg[] = (nanac_cmd_t[]){
+	static const nanac_cmd_t _cmds_reg[] = (const nanac_cmd_t[]){
 		{"mov", &reg_mov},
 		{"clr", &reg_clr},
 		{"swp", &reg_swp},
