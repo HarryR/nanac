@@ -25,25 +25,16 @@ def main():
 	instructions = parse_instructions()
 	offset = 0
 	print("""
-// Prologue
-
 #include <stdio.h>
 #include "nanac_builtins.c"
 int native_nanac (nanac_t *cpu) {
 	int escape = 0;
 	while( escape >= 0 ) {
 		escape = 0;
-		if( cpu->do_tmp ) {
-			cpu->do_tmp = 0;
-			nanac_op_t *op = &cpu->tmpop.op;
-			escape = nanac_step(cpu, op);
-		}
-		else {
 #ifdef TRACE
-			printf("@%d\\n", cpu->eip);
+		printf("@%d\\n", cpu->eip);
 #endif
-
-			switch( cpu->eip ) {
+		switch( cpu->eip ) {
 	""")
 	for filename in sys.argv[1:]:
 		with open(filename, "rb") as handle:
@@ -67,14 +58,9 @@ int native_nanac (nanac_t *cpu) {
 				offset += 1
 			random.shuffle(cases)
 			print("\n".join(cases))
-			print("\n")
-	print("""
-// Epilogue
-			default: escape = -666; break;
-			}
-			escape = nanac_step_epilogue(cpu, escape);
-
+	print("""			default: escape = -666; break;
 		}
+		escape = nanac_step_epilogue(cpu, escape);
 	}
 	return escape;
 }

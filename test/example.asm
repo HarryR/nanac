@@ -8,7 +8,9 @@ $ONE 1
 :main
 	reg mov $ZERO $ONE
 	reg swp $ONE $ZERO
-	jmp set :exit
-	jmp neq $ZERO $ONE
+	cnd neq $ZERO $ONE
+	jmp to :exit
 
-:end jmp eq $ZERO $ONE
+:end
+	cnd eq $ZERO $ONE
+	jmp to :exit

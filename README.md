@@ -7,13 +7,13 @@ Nanac is a tiny Python two-pass assembler and a C virtual machine. The microcode
  * 256 registers, no stack, 16bit address space
  * Register windows for subroutines
  * Easy and quick to modify and experiment
- * No dynamic heap or stack allocation
  * Typeless registers, `void*`
- * Extremely portable C99 code
+ * No heap allocation in VM core
+ * Microcontroller friendly
+ * Clean portable C99 code
  * Auto-updating (dis)assembler
  * Bytecode to C translator
- * Highly modular, add opcodes at runtime
- * 16-bit microcontroller friendly
+ * Highly modular (can even add opcodes at runtime)
 
 
 ## Example.asm
@@ -27,11 +27,12 @@ $ONE 1
 :main
     reg mov $ZERO $ONE
     reg swp $ONE $ZERO
-    jmp set :exit
-    jmp neq $ZERO $ONE
+    cnd neq $ZERO $ONE
+    jmp to :exit
 
-:end jmp eq $ZERO $ONE
-
+:end
+    cnd eq $ZERO $ONE
+    jmp to :exit
 ```
 
 When executing it will generate a trace:
@@ -40,22 +41,23 @@ When executing it will generate a trace:
 @0    jmp to 2 0
 @2    reg mov 0 1
 @3    reg swp 1 0
-@4    jmp set 1 0
-@5    jmp neq 0 1
-@6    jmp eq 0 1
+@4    cnd neq 0 1
+@6    cnd eq 0 1
+@7    jmp to 1 0
 @1    jmp die 0 0
 ```
 
 The assembler will generate a listing:
 
 ```asm
-01010200 @0    jmp to :main   # test.asm:5
-01000000 @1    jmp die    # test.asm:6
-00000001 @2    reg mov $ZERO $ONE  # test.asm:8
-00020100 @3    reg swp $ONE $ZERO  # test.asm:9
-01020100 @4    jmp set :exit   # test.asm:10
-01040001 @5    jmp neq $ZERO $ONE  # test.asm:11
-01030001 @6    jmp eq $ZERO $ONE  # test.asm:13
+00000200 @0    jmp to :main   # test/example.asm:5
+00010000 @1    jmp die    # test/example.asm:6
+02000001 @2    reg mov $ZERO $ONE  # test/example.asm:8
+02020100 @3    reg swp $ONE $ZERO  # test/example.asm:9
+01010001 @4    cnd neq $ZERO $ONE  # test/example.asm:10
+00000100 @5    jmp to :exit   # test/example.asm:11
+01000001 @6    cnd eq $ZERO $ONE  # test/example.asm:14
+00000100 @7    jmp to :exit   # test/example.asm:15
 ```
 
 
@@ -77,19 +79,28 @@ Access registers through `nanac_reg_get` and `nanac_reg_set`, all registers are
 a union type called `nanac_reg_t`.
 
 ```c
-static int jmp_eq( nanac_t *cpu, uint8_t arga, uint8_t argb ) {
-    cpu->do_jump = nanac_reg_get(cpu, arga).ptr == nanac_reg_get(cpu, argb).ptr;
-    return 0;
-}
+int reg_mov( nanac_t *cpu, uint8_t arga, uint8_t argb )
+{
+    nanac_reg_set(cpu, arga, nanac_reg_get(cpu, argb));
+    return NANAC_OK;
+} 
 ```
 
 ### Registering a native module
 
 ```c
-    static const nanac_cmd_t _cmds_jmp[] = (nanac_cmd_t[]){
-        {"eq", &jmp_eq},
-    };
-    nanac_mods_add(mods, "jmp", 1, _cmds_jmp);
+int jmp_to( nanac_t *cpu, uint8_t arga, uint8_t argb )
+{
+    // ...
+}
+
+static const nanac_cmd_t _cmds_jmp[] = (const nanac_cmd_t[]){
+    {"to", &jmp_to},
+    {"die", &jmp_die},
+    {"sub", &jmp_sub},
+    {"ret", &jmp_ret},
+};
+nanac_mods_add(mods, "jmp", 4, _cmds_jmp);
 ```
 
 ### Example host program
@@ -128,41 +139,30 @@ the module and cmd IDs, when new modules are added the assembler & disassembler 
 
 There are `2^8` registers, each is a native sized `void*` pointer.
 
-There can be up to `2^16` operations (262140 bytes of code), the `eip` is 16bit.
-
-There are three 'special' internal registers:
-
- * `EIP` - Instruction pointer
- * `JIP` - Conditional jump destination
- * `TMP` - Temporary polymorphic opcode
-
-Conditionals are handled by saving the 'jump address' into the `JIP` special register, then calling jump instructions such as `jmp neq` and `jmp eq` which - if the condition matches - will set `EIP` to `JIP`, otherwise increment `eip` and continue.
+There can be up to `2^16` operations (256 kilobytes of code), the instruction pointer `eip` is 16bit.
 
 Basic Modules:
 
- * `jmp` - Jump and control flow
- * `op` - Construct temporary opcodes
- * `reg` - Registers
+ * `jmp` - Jumps and subroutines
+ * `cnd` - Conditionally execute the next opcode
+ * `reg` - Register manipulation
 
 Other modules must be implemented by the user.
 
 ### `jmp` module
 
- * `set :label` - Set `JIP` to an absolute address, offset in opcodes not bytes
  * `to :label` - Immediate jump to an absolute address
- * `eq $A $B` - If $A and $B are equal, jump to `JIP`
- * `neq $A $B` - If $A and $B aren't the same, jump to `JIP`
- * `or $A $B` - If either $A or $B aren't uninitialised, jump to `JIP`
- * `and $A $B` - If both $A and $B aren't uninitialised, jump to `JIP`
- * `nil $A $B` - Jump to `JIP` if either $A or $B are uninitialised (`NULL`)
- * `nz $A $B` - Jump to `JIP` if either $A or $B are uninitialised (`NULL`)
  * `die` - Terminate program
+ * `sub :label` - Enter sub-routine, allowing for `ret` to return
  * `ret $A $B` - Load opcode from register A, reduce register window by B, run temporary opcode
 
-### `op` module
 
- * `jmp $A $B` - Create `jmp to $A $B` temporary instruction
- * `sav $A` - Save temporary instruction to register A
+### `cnd` module
+
+ * `eq $A $B` - If $A and $B are equal, execute next instruction
+ * `neq $A $B` - If $A and $B aren't the same, execute next instruction
+ * `nil $A $B` - f either $A or $B are uninitialised (`NULL`), execute next instruction
+ * `nz $A $B` - If either $A or $B are *not* uninitialised (`NULL`), execute next instruction
 
 ### `reg` module
 

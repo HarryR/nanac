@@ -3,6 +3,19 @@
 
 #include <stdint.h>
 
+
+#define NANAC_OK 0
+#define NANAC_NO_EPILOGUE 1
+#define NANAC_ERROR_DIE (-1)
+#define NANAC_ERROR_REGWIN_OVERFLOW (-101)
+#define NANAC_ERROR_REGWIN_UNDERFLOW (-102)
+#define NANAC_ERROR_STEP_NOMOD (-201)
+#define NANAC_ERROR_STEP_NOCMD (-202)
+#define NANAC_ERROR_STEP_BADOP (-203)
+#define NANAC_ERROR_SUBRET_OVERFLOW (-301)
+#define NANAC_ERROR_SUBRET_UNDERFLOW (-302)
+
+
 struct nanac_s;
 typedef struct nanac_s nanac_t;
 
@@ -18,13 +31,9 @@ typedef struct {
 
 
 struct nanac_reg_s {
-	union {
-		void *ptr;
-		nanac_op_t op;
-	};
+	void *ptr;
 };
 typedef struct nanac_reg_s nanac_reg_t;
-
 
 
 typedef struct {
@@ -49,13 +58,11 @@ typedef struct {
 
 
 struct nanac_s {
-	nanac_reg_t tmpop;
 	nanac_op_t *ops;
 	uint16_t ops_sz;
 	uint16_t eip;
-	uint16_t jip;
-	int do_jump;
-	int do_tmp;
+	uint16_t call_stack[0xFF];
+	uint8_t call_depth;
 	nanac_reg_t regs[0xFF];
 	uint8_t regs_win;
 	nanac_mods_t *mods;
@@ -72,7 +79,7 @@ int nanac_mods_add( nanac_mods_t *mods, const char *name, uint8_t cmds_len, cons
 
 void nanac_init( nanac_t *cpu, nanac_mods_t *mods );
 
-nanac_op_t *nanac_op( nanac_t *cpu, const uint16_t eip );
+const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip );
 
 int nanac_step_epilogue( nanac_t *cpu, int ret );
 
@@ -80,11 +87,9 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op );
 
 int nanac_run( nanac_t *cpu );
 
-const uint8_t *nanac_bytes( const nanac_t *cpu, uint32_t offset, uint32_t length );
+nanac_reg_t nanac_reg_get(const nanac_t *cpu, uint8_t reg);
 
-nanac_reg_t nanac_reg_get(nanac_t *cpu, uint8_t reg);
-
-void nanac_reg_set(nanac_t *cpu, uint8_t reg, nanac_reg_t val);
+void nanac_reg_set(nanac_t *cpu, const uint8_t reg, const nanac_reg_t val);
 
 void nanac_mods_builtins ( nanac_mods_t *mods );
 

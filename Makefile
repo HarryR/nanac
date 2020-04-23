@@ -1,4 +1,8 @@
-CFLAGS = -Wall -DTRACE
+CFLAGS = -Wall -Wextra -DTRACE
+
+ifdef RELEASE
+OPTFLAGS = -fuse-linker-plugin -flto -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections
+endif
 
 all: nanac.exe test
 
@@ -8,8 +12,11 @@ test: nanac.exe $(patsubst %.asm,%.test,$(wildcard test/*.asm))
 libnanac.a: nanac_vm.o nanac_builtins.o
 	$(AR) r $@ $+
 
+%.o: %.c
+	$(CC) $(CFLAGS) $(OPTFLAGS) -o $@ -c $<
+
 nanac.exe: main.o libnanac.a
-	$(CC) $(CFLAGS) -o $@ $< -L. -lnanac
+	$(CC) $(CFLAGS) $(OPTFLAGS) -o $@ $< -L. -lnanac
 
 clean:
 	rm -f *.o *.bin *.exe *.pyc *.a test/*.bin test/*.c test/*.out test/*.exe test/*.exe.tst
