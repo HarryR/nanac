@@ -17,15 +17,18 @@ void nanac_mods_init( nanac_mods_t *mods )
 }
 
 
-int nanac_mods_add( nanac_mods_t *mods, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] )
+int nanac_mods_add( nanac_mods_t *mods, const char *name, const uint8_t cmds_len, const nanac_cmd_t cmds[] )
 {
+	nanac_mod_t *mod;
+
 	if( mods->cnt >= 0xFF )
 		return 0;
 
-	nanac_mod_t *mod = &mods->idx[mods->cnt++];
+	mod = &mods->idx[mods->cnt++];
 	mod->name = name;
 	mod->cmds_len = cmds_len;
 	mod->cmds = cmds;
+
 	return 1;
 }
 
@@ -42,7 +45,7 @@ const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip )
 }
 
 
-nanac_reg_t nanac_reg_get(const nanac_t *cpu, uint8_t reg)
+nanac_reg_t nanac_reg_get(const nanac_t *cpu, const uint8_t reg)
 {
 	return cpu->regs[(uint8_t)(cpu->regs_win + reg)];
 }
@@ -66,6 +69,7 @@ int nanac_step_epilogue( nanac_t *cpu, int ret )
 int nanac_step( nanac_t *cpu, const nanac_op_t *op )
 {
 	const nanac_mod_t *mod = &cpu->mods->idx[op->mod];
+	const nanac_cmd_t *cmd;
 
 	if( ! mod )
 		return NANAC_ERROR_STEP_NOMOD;
@@ -73,14 +77,13 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op )
 	if( op->cmd >= mod->cmds_len )
 		return NANAC_ERROR_STEP_NOCMD;
 
-	const nanac_cmd_t *cmd = &mod->cmds[op->cmd];
+	cmd = &mod->cmds[op->cmd];
 
 #ifdef TRACE
 	printf("@%-4X %s %s %d %d\n", cpu->eip, mod->name, cmd->name, op->arga, op->argb);
 #endif
 
-	const int ret = cmd->run(cpu, op->arga, op->argb);
-	return nanac_step_epilogue(cpu, ret);
+	return nanac_step_epilogue(cpu, cmd->run(cpu, op->arga, op->argb));
 }
 
 

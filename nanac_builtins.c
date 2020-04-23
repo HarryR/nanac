@@ -19,7 +19,7 @@ int reg_mov( nanac_t *cpu, uint8_t arga, uint8_t argb )
 
 int reg_clr( nanac_t *cpu, uint8_t arga, uint8_t argb )
 {
-	nanac_reg_t zero = {.ptr=0};
+	static const nanac_reg_t zero = {0};
 	nanac_reg_set(cpu, arga, zero);
 	nanac_reg_set(cpu, argb, zero);
 	return NANAC_OK;
@@ -52,7 +52,7 @@ int jmp_sub( nanac_t *cpu, uint8_t arga, uint8_t argb )
 	if( cpu->call_depth >= 0xFF )
 		return NANAC_ERROR_SUBRET_OVERFLOW;
 
-	// Save EIP in call stack
+	/* Save EIP in call stack */
 	cpu->call_stack[cpu->call_depth] = (cpu->eip + 1);
 	cpu->call_depth += 1;
 
@@ -65,7 +65,7 @@ int jmp_ret( nanac_t *cpu, uint8_t arga, uint8_t argb )
 	if( cpu->call_depth <= 0 )
 		return NANAC_ERROR_SUBRET_UNDERFLOW;
 
-	// Restore EIP from call stack
+	/* Restore EIP from call stack */
 	cpu->call_depth -= 1;
 	cpu->eip = cpu->call_stack[cpu->call_depth];
 
@@ -75,16 +75,16 @@ int jmp_ret( nanac_t *cpu, uint8_t arga, uint8_t argb )
 
 int jmp_die( nanac_t *cpu, uint8_t arga, uint8_t argb )
 {
-	(void)cpu;	// unused
-	(void)arga;	// unused
-	(void)argb;	// unused
+	(void)cpu;	/* unused */
+	(void)arga;	/* unused */
+	(void)argb;	/* unused */
 	return NANAC_ERROR_DIE;
 }
 
 
 int cnd_common( nanac_t *cpu, int success )
 {
-	// Skip next opcode if conditional not successful
+	/* Skip next opcode if conditional not successful */
 	if( ! success )
 		cpu->eip += 1;
 
@@ -116,14 +116,14 @@ int cnd_nz( nanac_t *cpu, uint8_t arga, uint8_t argb )
 }
 
 
-void nanac_mods_builtins ( nanac_mods_t *mods ) {
+void nanac_mods_builtins ( nanac_mods_t *mods )
+{
 	static const nanac_cmd_t _cmds_jmp[] = (const nanac_cmd_t[]){
 		{"to", &jmp_to},
 		{"die", &jmp_die},
 		{"sub", &jmp_sub},
 		{"ret", &jmp_ret},
 	};
-	nanac_mods_add(mods, "jmp", 4, _cmds_jmp);
 
 	static const nanac_cmd_t _cmds_cnd[] = (const nanac_cmd_t[]){
 		{"eq", &cnd_eq},
@@ -131,7 +131,6 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 		{"nil", &cnd_nil},
 		{"nz", &cnd_nz},
 	};
-	nanac_mods_add(mods, "cnd", 4, _cmds_cnd);
 
 	static const nanac_cmd_t _cmds_reg[] = (const nanac_cmd_t[]){
 		{"mov", &reg_mov},
@@ -139,5 +138,8 @@ void nanac_mods_builtins ( nanac_mods_t *mods ) {
 		{"swp", &reg_swp},
 		{"win", &reg_win},
 	};
+
+	nanac_mods_add(mods, "jmp", 4, _cmds_jmp);
+	nanac_mods_add(mods, "cnd", 4, _cmds_cnd);
 	nanac_mods_add(mods, "reg", 4, _cmds_reg);
 }

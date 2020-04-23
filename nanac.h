@@ -68,14 +68,12 @@ struct nanac_s {
 	nanac_mods_t *mods;
 };
 
-static inline uint16_t nanac_uint16( uint8_t arga, uint8_t argb ) {
-	return arga | (argb<<8);
-}
+#define nanac_uint16(arga, argb) ( ((arga)&0xFF) | (((argb)&0xFF)<<8) )
 
 
 void nanac_mods_init( nanac_mods_t *mods );
 
-int nanac_mods_add( nanac_mods_t *mods, const char *name, uint8_t cmds_len, const nanac_cmd_t cmds[] );
+int nanac_mods_add( nanac_mods_t *mods, const char *name, const uint8_t cmds_len, const nanac_cmd_t cmds[] );
 
 void nanac_init( nanac_t *cpu, nanac_mods_t *mods );
 
@@ -87,7 +85,7 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op );
 
 int nanac_run( nanac_t *cpu );
 
-nanac_reg_t nanac_reg_get(const nanac_t *cpu, uint8_t reg);
+nanac_reg_t nanac_reg_get(const nanac_t *cpu, const uint8_t reg);
 
 void nanac_reg_set(nanac_t *cpu, const uint8_t reg, const nanac_reg_t val);
 

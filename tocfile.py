@@ -39,7 +39,7 @@ int native_nanac (nanac_t *cpu) {
 	for filename in sys.argv[1:]:
 		with open(filename, "rb") as handle:
 			cases = []
-			print("// " + filename)
+			print("/* " + filename + " */")
 			while True:
 				data = handle.read(4)
 				if not data:
@@ -50,7 +50,7 @@ int native_nanac (nanac_t *cpu) {
 					modstr, cmdstr = instructions[(mod,cmd)]
 				asmstr = "%s %s %X %X" % (modstr, cmdstr, arga, argb)
 				cases.append("\n".join([
-					"\t\t\tcase %d: // %02X%02X%02X%02X %s" % (
+					"\t\t\tcase %d: /* %02X%02X%02X%02X %s */" % (
 						offset, mod, cmd, arga, argb, asmstr),
 					"\t\t\t\tescape = %s_%s(cpu, %d, %d);" % (modstr, cmdstr, arga, argb),
 					"\t\t\t\tbreak;"
