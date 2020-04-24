@@ -1,10 +1,10 @@
 #include "nanac.h"
 
-int native_nanac (nanac_t *cpu);
+int native_nanac (struct nanac_s *cpu);
 
 int main( int argc, char **argv )
 {
-    nanac_t ctx;
+    struct nanac_s ctx;
 
 	(void)argc;
 	(void)argv;

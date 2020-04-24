@@ -27,11 +27,11 @@ def main():
 	print("""
 #include <stdio.h>
 #include "nanac_builtins.c"
-int native_nanac (nanac_t *cpu) {
+int native_nanac (struct nanac_s *cpu) {
 	int escape = 0;
 	while( escape >= 0 ) {
 		escape = 0;
-#ifdef TRACE
+#ifdef NANAC_TRACE
 		printf("@%d\\n", cpu->eip);
 #endif
 		switch( cpu->eip ) {

@@ -1,26 +1,26 @@
 #include "nanac.h"
-
 #include <string.h>
 #include <stdio.h>
 
 
-void nanac_init( nanac_t *cpu, nanac_mods_t *mods )
+void nanac_init( struct nanac_s *cpu, struct nanac_mods_s *mods )
 {
 	memset(cpu, 0, sizeof(*cpu));
 	cpu->mods = mods;
 }
 
 
-void nanac_mods_init( nanac_mods_t *mods )
+void nanac_mods_init( struct nanac_mods_s *mods )
 {
 	memset(mods, 0, sizeof(*mods));
 }
 
 
-int nanac_mods_add( nanac_mods_t *mods, const char *name, const uint8_t cmds_len, const nanac_cmd_t cmds[] )
+int nanac_mods_add( struct nanac_mods_s *mods, const char *name, const unsigned char cmds_len, const struct nanac_cmd_s *cmds )
 {
-	nanac_mod_t *mod;
+	struct nanac_mod_s *mod;
 
+	/* Constrained by uint8 */
 	if( mods->cnt >= 0xFF )
 		return 0;
 
@@ -36,7 +36,7 @@ int nanac_mods_add( nanac_mods_t *mods, const char *name, const uint8_t cmds_len
 #define FLAG_VALID(cpu, offset) (offset < (8*sizeof(cpu->flags)))
 
 
-const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip )
+const struct nanac_op_s *nanac_op( const struct nanac_s *cpu, const unsigned short eip )
 {
 	if( eip < cpu->ops_sz )
 		return &cpu->ops[eip];
@@ -45,19 +45,19 @@ const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip )
 }
 
 
-nanac_reg_t nanac_reg_get(const nanac_t *cpu, const uint8_t reg)
+struct nanac_reg_s nanac_reg_get(const struct nanac_s *cpu, const unsigned char reg)
 {
-	return cpu->regs[(uint8_t)(cpu->regs_win + reg)];
+	return cpu->regs[(unsigned char)(cpu->regs_win + reg)];
 }
 
 
-void nanac_reg_set(nanac_t *cpu, const uint8_t reg, const nanac_reg_t val)
+void nanac_reg_set(struct nanac_s *cpu, const unsigned char reg, const struct nanac_reg_s val)
 {
-	cpu->regs[(uint8_t)(cpu->regs_win + reg)] = val;
+	cpu->regs[(unsigned char)(cpu->regs_win + reg)] = val;
 }
 
 
-int nanac_step_epilogue( nanac_t *cpu, int ret )
+int nanac_step_epilogue( struct nanac_s *cpu, int ret )
 {
 	if( ret == NANAC_OK )
 		cpu->eip += 1;
@@ -66,10 +66,10 @@ int nanac_step_epilogue( nanac_t *cpu, int ret )
 }
 
 
-int nanac_step( nanac_t *cpu, const nanac_op_t *op )
+int nanac_step( struct nanac_s *cpu, const struct nanac_op_s *op )
 {
-	const nanac_mod_t *mod = &cpu->mods->idx[op->mod];
-	const nanac_cmd_t *cmd;
+	const struct nanac_mod_s *mod = &cpu->mods->idx[op->mod];
+	const struct nanac_cmd_s *cmd;
 
 	if( ! mod )
 		return NANAC_ERROR_STEP_NOMOD;
@@ -79,7 +79,7 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op )
 
 	cmd = &mod->cmds[op->cmd];
 
-#ifdef TRACE
+#ifdef NANAC_TRACE
 	printf("@%-4X %s %s %d %d\n", cpu->eip, mod->name, cmd->name, op->arga, op->argb);
 #endif
 
@@ -87,13 +87,13 @@ int nanac_step( nanac_t *cpu, const nanac_op_t *op )
 }
 
 
-int nanac_run( nanac_t *cpu )
+int nanac_run( struct nanac_s *cpu )
 {
 	int escape = 0;
 
 	while( escape >= 0 )
 	{
-		const nanac_op_t *op = nanac_op( cpu, cpu->eip );
+		const struct nanac_op_s *op = nanac_op( cpu, cpu->eip );
 
 		if( ! op ) {
 			escape = NANAC_ERROR_STEP_BADOP;

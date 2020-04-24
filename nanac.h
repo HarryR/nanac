@@ -1,8 +1,13 @@
-#ifndef NANACBUS_H_
-#define NANACBUS_H_
+#ifndef NANAC_H_
+#define NANAC_H_
 
-#include <stdint.h>
+#ifndef NANAC_SETTING_MAXREGS
+#define NANAC_SETTING_MAXREGS 0xFF
+#endif
 
+#ifndef NANAC_SETTING_MAXCALLS
+#define NANAC_SETTING_MAXCALLS 0xFF
+#endif
 
 #define NANAC_OK 0
 #define NANAC_NO_EPILOGUE 1
@@ -17,78 +22,72 @@
 
 
 struct nanac_s;
-typedef struct nanac_s nanac_t;
 
-typedef int (*nanac_op_f)( nanac_t *cpu, uint8_t arga, uint8_t argb );
-
-
-typedef struct {
-	uint8_t mod;
-	uint8_t cmd;
-	uint8_t arga;
-	uint8_t argb;
-} nanac_op_t;
+struct nanac_op_s {
+	unsigned char mod;
+	unsigned char cmd;
+	unsigned char arga;
+	unsigned char argb;
+};
 
 
 struct nanac_reg_s {
 	void *ptr;
 };
-typedef struct nanac_reg_s nanac_reg_t;
 
 
-typedef struct {
+struct nanac_cmd_s {
 	const char *name;
-	nanac_op_f run;
-} nanac_cmd_t;
-
-typedef nanac_cmd_t *nanac_cmd_p;
+	int (*run)( struct nanac_s *cpu, unsigned char arga, unsigned char argb );
+};
 
 
-typedef struct {
+struct nanac_mod_s {
 	const char *name;
-	uint8_t cmds_len;
-	const nanac_cmd_t *cmds;
-} nanac_mod_t;
+	unsigned char cmds_len;
+	const struct nanac_cmd_s *cmds;
+};
 
 
-typedef struct {
-	nanac_mod_t idx[0xFF];
-	uint8_t cnt;
-} nanac_mods_t;
+struct nanac_mods_s {
+	struct nanac_mod_s idx[0xFF];
+	unsigned char cnt;
+};
 
 
 struct nanac_s {
-	nanac_op_t *ops;
-	uint16_t ops_sz;
-	uint16_t eip;
-	uint16_t call_stack[0xFF];
-	uint8_t call_depth;
-	nanac_reg_t regs[0xFF];
-	uint8_t regs_win;
-	nanac_mods_t *mods;
+	struct nanac_op_s *ops;
+	unsigned short ops_sz;
+	unsigned short eip;
+	unsigned short call_stack[0xFF];
+	unsigned char call_depth;
+	struct nanac_reg_s regs[0xFF];
+	unsigned char regs_win;
+	struct nanac_mods_s *mods;
 };
 
 #define nanac_uint16(arga, argb) ( ((arga)&0xFF) | (((argb)&0xFF)<<8) )
 
 
-void nanac_mods_init( nanac_mods_t *mods );
+void nanac_mods_init( struct nanac_mods_s *mods );
 
-int nanac_mods_add( nanac_mods_t *mods, const char *name, const uint8_t cmds_len, const nanac_cmd_t cmds[] );
+int nanac_mods_add( struct nanac_mods_s *mods, const char *name, const unsigned char cmds_len, const struct nanac_cmd_s *cmds );
 
-void nanac_init( nanac_t *cpu, nanac_mods_t *mods );
+void nanac_init( struct nanac_s *cpu, struct nanac_mods_s *mods );
 
-const nanac_op_t *nanac_op( const nanac_t *cpu, const uint16_t eip );
+const struct nanac_op_s *nanac_op( const struct nanac_s *cpu, const unsigned short eip );
 
-int nanac_step_epilogue( nanac_t *cpu, int ret );
+int nanac_step_epilogue( struct nanac_s *cpu, int ret );
 
-int nanac_step( nanac_t *cpu, const nanac_op_t *op );
+int nanac_step( struct nanac_s *cpu, const struct nanac_op_s *op );
 
-int nanac_run( nanac_t *cpu );
+int nanac_run( struct nanac_s *cpu );
 
-nanac_reg_t nanac_reg_get(const nanac_t *cpu, const uint8_t reg);
+struct nanac_reg_s nanac_reg_get(const struct nanac_s *cpu, const unsigned char reg);
 
-void nanac_reg_set(nanac_t *cpu, const uint8_t reg, const nanac_reg_t val);
+void nanac_reg_set(struct nanac_s *cpu, const unsigned char reg, const struct nanac_reg_s val);
 
-void nanac_mods_builtins ( nanac_mods_t *mods );
+void nanac_mods_builtins ( struct nanac_mods_s *mods );
 
+/* ifdef NANAC_H_ */
 #endif

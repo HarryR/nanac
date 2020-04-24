@@ -1,16 +1,16 @@
 # Nanac
 
-Nanac is a tiny Python two-pass assembler and a C virtual machine. The microcode VM is under 150 lines of C and is fully modular allowing modules to be added at runtime without changing the assembler or core VM code.
+Nanac is a tiny C virtual machine, with a small Python two-pass assembler. The portable microcode VM is under 200 lines of C and is fully modular, which allows modules to be added at fruntime or compile-time without changing the assembler or core VM code.
 
 ### Features
 
  * 256 registers, no stack, 16bit address space
  * Register windows for subroutines
  * Easy and quick to modify and experiment
- * Typeless registers, `void*`
+ * Typeless registers, `void*`, for extensibility
  * No heap allocation in VM core
  * Microcontroller friendly
- * Clean portable C99 code
+ * Clean portable C89 / ANSI-C code
  * Auto-updating (dis)assembler
  * Bytecode to C translator
  * Highly modular (can even add opcodes at runtime)
@@ -67,19 +67,21 @@ The builtins and vm are contained in `libnanac.a` and `nanac.h` which can be
 included in projects as a git submodule. Build with:
 
 ```
-cc -o myproject -Inanac myproject.c -Lnanac -lnanac
+git submodule add https://github.com/HarryR/nanac
+cc -o myproject.exe -Inanac myproject.c -Lnanac -lnanac
 ```
 
 ### Implementing a native command
 
-All commands have the same interface, they are passed the context pointer and
-two 8 bit values from the data half of the opcode.
+All commands have the same interface, they are passed the CPU context pointer and
+two 8 bit values from the data half of the opcode. Each opcode is 4 bytes, two
+indicating the module and command, then two arbitrary arguments.
 
 Access registers through `nanac_reg_get` and `nanac_reg_set`, all registers are
 a union type called `nanac_reg_t`.
 
 ```c
-int reg_mov( nanac_t *cpu, uint8_t arga, uint8_t argb )
+int reg_mov( struct nanac_s *cpu, unsigned char arga, unsigned char argb )
 {
     nanac_reg_set(cpu, arga, nanac_reg_get(cpu, argb));
     return NANAC_OK;
@@ -89,12 +91,13 @@ int reg_mov( nanac_t *cpu, uint8_t arga, uint8_t argb )
 ### Registering a native module
 
 ```c
-int jmp_to( nanac_t *cpu, uint8_t arga, uint8_t argb )
+int jmp_to( struct nanac_s *cpu, unsigned char arga, unsigned char argb )
 {
     // ...
+    return NANAC_OK
 }
 
-static const nanac_cmd_t _cmds_jmp[] = (const nanac_cmd_t[]){
+static const nanac_cmd_t _cmds_jmp[4] = {
     {"to", &jmp_to},
     {"die", &jmp_die},
     {"sub", &jmp_sub},
@@ -106,18 +109,22 @@ nanac_mods_add(mods, "jmp", 4, _cmds_jmp);
 ### Example host program
 
 ```c
-int main( int argc, char **argv ) {
-    nanac_mods_t mods;
-    nanac_mods_init(&mods);
+int main( int argc, char **argv )
+{
+    struct nanac_mods_s mods;
+    struct nanac_s ctx;
+    int ret;
+
+    nanac_mods_init(&mods);         /* setup standard built-in modules + commands */
     nanac_mods_builtins(&mods);
-    print_mods(&mods);
     
-    nanac_t ctx;
-    nanac_init(&ctx, &mods);
-    load_file(&ctx, argv[i]);
-    int ret = nanac_run(&ctx);
-    if( ctx.ops ) {
-        free(ctx.ops);
+    nanac_init(&ctx, &mods);        /* initialise context/CPU with the modules */
+
+    if( load_file(&ctx, argv[1]) )  /* load bytecode file into ctx.ops */
+    {
+        ret = nanac_run(&ctx);
+        if( ctx.ops )
+            free(ctx.ops);  /* free loaded file */
     }
 
     return ret;

@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -DTRACE -std=c89 -pedantic
+CFLAGS = -Wall -Wextra -DNANAC_TRACE -std=c89 -pedantic
 
 ifdef RELEASE
 OPTFLAGS = -fuse-linker-plugin -flto -O2 -fdata-sections -ffunction-sections -Wl,--gc-sections

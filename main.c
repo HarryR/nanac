@@ -2,11 +2,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <getopt.h>
 
 
-static void load_file (nanac_t *cpu, const char *filename)
+static void load_file (struct nanac_s *cpu, const char *filename)
 {
     FILE *fp;
     long lSize;
@@ -49,17 +47,17 @@ static void load_file (nanac_t *cpu, const char *filename)
     }
 
     /* do your work here, buffer is a string contains the whole text */
-    cpu->ops = (nanac_op_t*)buffer;
+    cpu->ops = (struct nanac_op_s*)buffer;
     cpu->ops_sz = lSize / 4;
     fclose(fp);
 }
 
 
-static void print_mods (nanac_mods_t *mods)
+static int print_mods (struct nanac_mods_s *mods)
 {
-    nanac_mod_t *mod;
-    uint8_t mod_idx;
-    uint8_t cmd_idx;
+    struct nanac_mod_s *mod;
+    unsigned char mod_idx;
+    unsigned char cmd_idx;
 
     for( mod_idx = 0; mod_idx < mods->cnt; mod_idx++ )
     {
@@ -71,6 +69,7 @@ static void print_mods (nanac_mods_t *mods)
                 mod->cmds[cmd_idx].name);
         }
     }
+    return 0;
 }
 
 
@@ -86,50 +85,39 @@ static int print_help (char *name)
 int main( int argc, char **argv )
 {
     int flag_trace = 0;
-    int flag_display = 0;
-    int flag_help = 0;
-    int opt;
-    int i;
-    nanac_mods_t mods;
-    nanac_t ctx;
-
-    while( (opt = getopt(argc, argv, "tX")) != -1 )
-    {
-        switch(opt)
-        {
-            case 't':
-                flag_trace++;
-                break;
-
-            case 'X':
-                flag_display++;
-                break;
-
-            default:
-                fprintf(stderr, "error: invalid option %c\n", opt);
-                flag_help = 1;
-                break;
-        }
-    }
-
-    if( flag_help )
-    {
-        return print_help(argv[0]);
-    }
+    int i = 1;
+    struct nanac_mods_s mods;
+    struct nanac_s ctx;
 
     nanac_mods_init(&mods);
     nanac_mods_builtins(&mods);
 
-    if( flag_display )
-    {
-        print_mods(&mods);
-    }
-    else if( optind >= argc )
+    if( argc < 2 )
     {
         return print_help(argv[0]);
     }
 
-    for( i = optind; i < argc; i++ )
+    if( argv[1][0] == '-' )
+    {
+        char *flags_ptr = &argv[1][1];
+        i = 2;
+        while( *flags_ptr != 0 )
+        {
+            switch( *flags_ptr ) {
+            case 't':
+                flag_trace++;
+                break;
+            case 'X':
+                return print_mods(&mods);
+            default:
+                fprintf(stderr, "error: invalid option %c\n", *flags_ptr);
+                return print_help(argv[0]);
+            }
+            flags_ptr++;
+        }
+    }
+
+    for( ; i < argc; i++ )
     {
         nanac_init(&ctx, &mods);
         load_file(&ctx, argv[i]);
